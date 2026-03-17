@@ -10,6 +10,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import InsightsPage from './pages/InsightsPage';
 import ProgressPage from './pages/ProgressPage';
 import SettingsPage from './pages/SettingsPage';
+import { TimelineProvider } from './context/TimelineContext';
 import { generateSampleData } from './store/moodStore';
 
 const pageTransition = {
@@ -72,62 +73,64 @@ export default function App() {
   };
 
   return (
-    <div className="app-layout">
-      {/* Custom Cursor */}
-      <Cursor />
+    <TimelineProvider>
+      <div className="app-layout">
+        {/* Custom Cursor */}
+        <Cursor />
 
-      {/* Background Orbs */}
-      <div className="bg-orb bg-orb-1" />
-      <div className="bg-orb bg-orb-2" />
-      <div className="bg-orb bg-orb-3" />
+        {/* Background Orbs */}
+        <div className="bg-orb bg-orb-1" />
+        <div className="bg-orb bg-orb-2" />
+        <div className="bg-orb bg-orb-3" />
 
-      {/* Sidebar */}
-      <Sidebar activePage={activePage} onNavigate={handleNavigate} />
+        {/* Sidebar */}
+        <Sidebar activePage={activePage} onNavigate={handleNavigate} />
 
-      {/* Main Content */}
-      <main className="main-content">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activePage}
-            {...pageTransition}
-          >
-            {renderPage()}
-          </motion.div>
+        {/* Main Content */}
+        <main className="main-content">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activePage}
+              {...pageTransition}
+            >
+              {renderPage()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
+        {/* Floating Log Button */}
+        <motion.button
+          className="fab-log"
+          onClick={openLogger}
+          whileHover={{ scale: 1.1, rotate: 90 }}
+          whileTap={{ scale: 0.9 }}
+          id="fab-log-mood"
+          aria-label="Log Mood"
+        >
+          <Plus size={28} />
+        </motion.button>
+
+        {/* Mood Logger Modal */}
+        <MoodLogger
+          isOpen={isLoggerOpen}
+          onClose={() => setIsLoggerOpen(false)}
+          onSaved={handleMoodSaved}
+        />
+
+        {/* Toast Notification */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              className="toast"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+            >
+              {toast}
+            </motion.div>
+          )}
         </AnimatePresence>
-      </main>
-
-      {/* Floating Log Button */}
-      <motion.button
-        className="fab-log"
-        onClick={openLogger}
-        whileHover={{ scale: 1.1, rotate: 90 }}
-        whileTap={{ scale: 0.9 }}
-        id="fab-log-mood"
-        aria-label="Log Mood"
-      >
-        <Plus size={28} />
-      </motion.button>
-
-      {/* Mood Logger Modal */}
-      <MoodLogger
-        isOpen={isLoggerOpen}
-        onClose={() => setIsLoggerOpen(false)}
-        onSaved={handleMoodSaved}
-      />
-
-      {/* Toast Notification */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            className="toast"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-          >
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      </div>
+    </TimelineProvider>
   );
 }

@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Flame, Target, Smile, Activity, Award, TrendingUp } from 'lucide-react';
 import { getProgressMetrics, calculateStreak, getAllLogs, MOODS } from '../store/moodStore';
-import { format, subDays } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
+import { useTimeline } from '../context/TimelineContext';
+import SoundManager from '../utils/soundManager';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -82,6 +84,7 @@ function CircularProgress({ value, max = 100, size = 120, strokeWidth = 8, color
 }
 
 export default function ProgressPage({ refreshKey }) {
+  const { selectedDate, clearSelection } = useTimeline();
   const metrics = useMemo(() => getProgressMetrics(), [refreshKey]);
   const streak = useMemo(() => calculateStreak(), [refreshKey]);
   const allLogs = useMemo(() => getAllLogs(), [refreshKey]);
@@ -92,6 +95,7 @@ export default function ProgressPage({ refreshKey }) {
     for (let i = 29; i >= 0; i--) {
       const date = subDays(new Date(), i);
       const dateStr = format(date, 'yyyy-MM-dd');
+      const isSelectedDate = selectedDate === dateStr;
 
       // Get logs within a 7-day rolling window
       const windowLogs = allLogs.filter(log => {
@@ -107,10 +111,11 @@ export default function ProgressPage({ refreshKey }) {
       data.push({
         date: format(date, 'MMM dd'),
         avg,
+        isSelected: isSelectedDate,
       });
     }
     return data;
-  }, [allLogs]);
+  }, [allLogs, selectedDate]);
 
   // Emotional stability index (lower variance = more stable)
   const stabilityIndex = useMemo(() => {

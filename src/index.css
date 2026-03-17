@@ -796,6 +796,11 @@ body.cursor-active .cursor-ring {
 .heatmap-cell.mood-4 { background: var(--mood-4); color: white; }
 .heatmap-cell.mood-5 { background: var(--mood-5); color: white; }
 
+.heatmap-cell.selected-day {
+  border: 3px solid var(--accent-purple);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.4), 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
 .heatmap-day-label {
   font-size: 0.7rem;
   color: var(--text-tertiary);

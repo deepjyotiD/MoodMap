@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, Sparkles } from 'lucide-react';
 import { MOODS, AVAILABLE_TAGS, addMoodLog } from '../store/moodStore';
 import MoodSphere from './MoodSphere';
+import SoundManager from '../utils/soundManager';
 
 export default function MoodLogger({ isOpen, onClose, onSaved }) {
   const [selectedMood, setSelectedMood] = useState(null);
@@ -13,6 +14,7 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
 
   const toggleTag = (tagId) => {
+    SoundManager.play('select');
     setSelectedTags(prev =>
       prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]
     );
@@ -20,6 +22,7 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
 
   const handleSave = () => {
     if (!selectedMood) return;
+    SoundManager.play('success');
     setSaving(true);
 
     const log = {
@@ -44,6 +47,7 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
   };
 
   const handleClose = () => {
+    SoundManager.play('click');
     setSelectedMood(null);
     setSelectedTags([]);
     setEnergyLevel(5);
@@ -102,7 +106,10 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
                   <motion.div
                     key={mood.score}
                     className={`mood-option ${selectedMood === mood.score ? 'selected' : ''}`}
-                    onClick={() => setSelectedMood(mood.score)}
+                    onClick={() => {
+                      SoundManager.play('select');
+                      setSelectedMood(mood.score);
+                    }}
                     whileTap={{ scale: 0.95 }}
                     id={`mood-option-${mood.score}`}
                   >
@@ -116,7 +123,10 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
                 <button
                   className="btn btn-primary"
                   disabled={!selectedMood}
-                  onClick={() => setStep(2)}
+                  onClick={() => {
+                    SoundManager.play('click');
+                    setStep(2);
+                  }}
                   id="mood-step-1-next"
                   style={{ opacity: selectedMood ? 1 : 0.5 }}
                 >
@@ -146,7 +156,10 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
                   min="1"
                   max="10"
                   value={energyLevel}
-                  onChange={(e) => setEnergyLevel(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    SoundManager.play('hover');
+                    setEnergyLevel(parseInt(e.target.value));
+                  }}
                   id="energy-slider"
                   style={{
                     background: `linear-gradient(to right, #a855f7 ${(energyLevel - 1) / 9 * 100}%, rgba(124, 58, 237, 0.1) ${(energyLevel - 1) / 9 * 100}%)`,
@@ -172,8 +185,14 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-xl)' }}>
-                <button className="btn btn-secondary" onClick={() => setStep(1)}>Back</button>
-                <button className="btn btn-primary" onClick={() => setStep(3)} id="mood-step-2-next">
+                <button className="btn btn-secondary" onClick={() => {
+                  SoundManager.play('click');
+                  setStep(1);
+                }}>Back</button>
+                <button className="btn btn-primary" onClick={() => {
+                  SoundManager.play('click');
+                  setStep(3);
+                }} id="mood-step-2-next">
                   Next
                   <Sparkles size={16} />
                 </button>
@@ -218,7 +237,10 @@ export default function MoodLogger({ isOpen, onClose, onSaved }) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-xl)' }}>
-                <button className="btn btn-secondary" onClick={() => setStep(2)}>Back</button>
+                <button className="btn btn-secondary" onClick={() => {
+                  SoundManager.play('click');
+                  setStep(2);
+                }}>Back</button>
                 <motion.button
                   className="btn btn-primary"
                   onClick={handleSave}

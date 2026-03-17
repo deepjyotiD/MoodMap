@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addMonths, subMonths } from 'date-fns';
 import { getHeatmapData, MOODS } from '../store/moodStore';
+import { useTimeline } from '../context/TimelineContext';
+import SoundManager from '../utils/soundManager';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -22,14 +24,27 @@ const cellVariants = {
 export default function CalendarPage({ refreshKey }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hoveredDay, setHoveredDay] = useState(null);
+  const { selectedDate, selectDate } = useTimeline();
 
   const heatmapData = useMemo(
     () => getHeatmapData(currentMonth.getFullYear(), currentMonth.getMonth()),
     [currentMonth, refreshKey]
   );
 
-  const prevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
-  const nextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
+  const prevMonth = () => {
+    SoundManager.play('click');
+    setCurrentMonth(prev => subMonths(prev, 1));
+  };
+
+  const nextMonth = () => {
+    SoundManager.play('click');
+    setCurrentMonth(prev => addMonths(prev, 1));
+  };
+
+  const handleDayClick = (day) => {
+    SoundManager.play('select');
+    selectDate(day.dateStr);
+  };
 
   // Calculate offset for first day of month
   const firstDayOffset = heatmapData.length > 0 ? heatmapData[0].dayOfWeek : 0;
@@ -89,37 +104,46 @@ export default function CalendarPage({ refreshKey }) {
           ))}
 
           {/* Day Cells */}
-          {heatmapData.map((day, i) => (
-            <motion.div
-              key={day.dateStr}
-              className={`heatmap-cell ${day.mood ? `mood-${day.mood}` : ''}`}
-              variants={cellVariants}
-              onMouseEnter={() => setHoveredDay(day)}
-              onMouseLeave={() => setHoveredDay(null)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.7rem',
-                fontWeight: 500,
-                color: day.mood ? 'white' : 'var(--text-tertiary)',
-                position: 'relative',
-                minHeight: '44px',
-              }}
-            >
-              {day.dayOfMonth}
-              {day.mood && (
-                <span style={{
-                  position: 'absolute',
-                  bottom: 2,
-                  fontSize: '0.65rem',
-                  lineHeight: 1,
-                }}>
-                  {MOODS.find(m => m.score === day.mood)?.emoji}
-                </span>
-              )}
-            </motion.div>
-          ))}
+          {heatmapData.map((day, i) => {
+            const isSelected = selectedDate === day.dateStr;
+            return (
+              <motion.div
+                key={day.dateStr}
+                className={`heatmap-cell ${day.mood ? `mood-${day.mood}` : ''} ${isSelected ? 'selected-day' : ''}`}
+                variants={cellVariants}
+                onClick={() => handleDayClick(day)}
+                onMouseEnter={() => setHoveredDay(day)}
+                onMouseLeave={() => setHoveredDay(null)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 500,
+                  color: day.mood ? 'white' : 'var(--text-tertiary)',
+                  position: 'relative',
+                  minHeight: '44px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+                  boxShadow: isSelected ? '0 4px 12px rgba(124, 58, 237, 0.3)' : 'none',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                {day.dayOfMonth}
+                {day.mood && (
+                  <span style={{
+                    position: 'absolute',
+                    bottom: 2,
+                    fontSize: '0.65rem',
+                    lineHeight: 1,
+                  }}>
+                    {MOODS.find(m => m.score === day.mood)?.emoji}
+                  </span>
+                )}
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* Legend */}
